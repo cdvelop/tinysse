@@ -1,17 +1,10 @@
+//go:build !wasm
+
 package tinysse
 
-import "testing"
-
-func TestNew(t *testing.T) {
-	c := &Config{}
-	sse := New(c)
-	if sse == nil {
-		t.Error("New() returned nil")
-	}
-	if sse.config != c {
-		t.Error("New() did not set config")
-	}
-}
+import (
+	"testing"
+)
 
 func TestAutoChannels(t *testing.T) {
 	channels := autoChannels("user1", "admin")

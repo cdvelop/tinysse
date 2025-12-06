@@ -79,12 +79,12 @@ func (s *TinySSE) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
-	client := &SSEClient{
+	client := &clientConnection{
 		ID:       clientID,
 		UserID:   userID,
 		Role:     role,
 		Channels: autoChannels(userID, role),
-		Send:     make(chan SSEMessage, s.config.BufferSize),
+		Send:     make(chan SSEMessage, s.config.ClientChannelBuffer),
 	}
 	s.hub.register(client)
 
@@ -95,6 +95,9 @@ func (s *TinySSE) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if s.config.OnConnect != nil {
 		s.config.OnConnect(client.ID)
 	}
+
+	// Flush headers to establish connection immediately
+	flusher.Flush()
 
 	// Notify on disconnect
 	if s.config.OnDisconnect != nil {

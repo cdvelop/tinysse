@@ -10,7 +10,7 @@ import (
 // SSEHub manages SSE clients and broadcasting.
 type SSEHub struct {
 	mu            sync.RWMutex
-	clients       map[string]*SSEClient
+	clients       map[string]*clientConnection
 	messageBuffer []SSEMessage
 	config        *Config
 	lastID        uint64
@@ -19,7 +19,7 @@ type SSEHub struct {
 // NewHub creates a new SSEHub.
 func NewHub(c *Config) *SSEHub {
 	return &SSEHub{
-		clients: make(map[string]*SSEClient),
+		clients: make(map[string]*clientConnection),
 		config:  c,
 	}
 }
@@ -37,8 +37,8 @@ func (h *SSEHub) Broadcast(data []byte, broadcast []string, handlerID uint8) {
 	h.messageBuffer = append(h.messageBuffer, msg)
 
 	// Trim buffer if it's too large
-	if h.config.MessageBufferSize > 0 && len(h.messageBuffer) > h.config.MessageBufferSize {
-		h.messageBuffer = h.messageBuffer[len(h.messageBuffer)-h.config.MessageBufferSize:]
+	if h.config.HistoryReplayBuffer > 0 && len(h.messageBuffer) > h.config.HistoryReplayBuffer {
+		h.messageBuffer = h.messageBuffer[len(h.messageBuffer)-h.config.HistoryReplayBuffer:]
 	}
 	h.mu.Unlock()
 
@@ -58,14 +58,14 @@ func (h *SSEHub) Broadcast(data []byte, broadcast []string, handlerID uint8) {
 }
 
 // register adds a client to the hub.
-func (h *SSEHub) register(client *SSEClient) {
+func (h *SSEHub) register(client *clientConnection) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	h.clients[client.ID] = client
 }
 
 // unregister removes a client from the hub.
-func (h *SSEHub) unregister(client *SSEClient) {
+func (h *SSEHub) unregister(client *clientConnection) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	if _, ok := h.clients[client.ID]; ok {
@@ -98,11 +98,12 @@ func (h *SSEHub) GetMessagesSince(lastEventID string) []SSEMessage {
 	return messages
 }
 
-// SSEClient represents a connected SSE client.
-type SSEClient struct {
-	ID        string
-	UserID    string
-	Role      string
-	Channels  []string
-	Send      chan SSEMessage
+// clientConnection represents a connected SSE client on the server side.
+// Note: This is different from SSEClient which is the WASM client.
+type clientConnection struct {
+	ID       string
+	UserID   string
+	Role     string
+	Channels []string
+	Send     chan SSEMessage
 }

@@ -11,9 +11,9 @@ import (
 
 // TinySSE is the main struct for the library.
 type TinySSE struct {
-	config             *Config
-	lastEventID        string
-	es                 js.Value
+	config            *Config
+	lastEventID       string
+	es                js.Value
 	reconnectAttempts int
 }
 
@@ -56,10 +56,13 @@ func (s *TinySSE) Connect() {
 			err := &SSEError{Type: tinystring.Msg.Connect, Err: js.Error{Value: args[0]}, Context: "connection error"}
 			s.config.OnError(err)
 		}
-		// Only reconnect on non-fatal errors
-		if s.es.Get("readyState").Int() != 2 { // CLOSED
+		// If CLOSED, it means fatal error or 401/403 (browser gave up).
+		// We must manually reconnect to get a new token.
+		if s.es.Get("readyState").Int() == 2 { // CLOSED
 			s.reconnect()
 		}
+		// If not CLOSED (e.g. CONNECTING), browser is retrying natively. Do nothing.
+		return nil
 	}))
 }
 
