@@ -1,4 +1,4 @@
-package tinysse
+package sse
 
 // SSEMessage represents a message sent over SSE.
 // Shared by both Server (for broadcasting) and Client (for consumption).

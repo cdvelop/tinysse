@@ -7,7 +7,7 @@ Client and Event Server, SSE (Server-Sent Events) protocol compatible with **Go*
 **Installation**
 
 ```bash
-go get github.com/cdvelop/tinysse
+go get github.com/tinywasm/sse
 ```
 
 **Quick Links**

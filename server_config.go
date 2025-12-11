@@ -1,6 +1,6 @@
 //go:build !wasm
 
-package tinysse
+package sse
 
 // ServerConfig holds configuration strictly for the Server HTTP Handler.
 type ServerConfig struct {

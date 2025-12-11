@@ -1,6 +1,6 @@
 //go:build wasm
 
-package tinysse
+package sse
 
 // ClientConfig holds configuration strictly for the Browser/WASM Client.
 type ClientConfig struct {

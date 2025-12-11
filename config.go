@@ -1,4 +1,4 @@
-package tinysse
+package sse
 
 // Config holds the shared configuration for both Server and Client.
 type Config struct {

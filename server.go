@@ -1,6 +1,6 @@
 //go:build !wasm
 
-package tinysse
+package sse
 
 import (
 	"net/http"

@@ -1,6 +1,6 @@
 # TinySSE Architecture
 
-> **Package:** `github.com/cdvelop/tinysse`
+> **Package:** `github.com/tinywasm/sse`
 
 ## System Overview
 

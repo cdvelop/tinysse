@@ -1,4 +1,4 @@
-package tinysse
+package sse
 
 // tinySSE is the internal struct holding shared configuration.
 type tinySSE struct {

@@ -1,13 +1,12 @@
 //go:build !wasm
 
-package tinysse
+package sse
 
 import (
 	"bytes"
-	"strings"
 	"sync"
 
-	"github.com/cdvelop/tinystring"
+	. "github.com/tinywasm/fmt"
 )
 
 // hub manages SSE clients and broadcasting.
@@ -108,7 +107,7 @@ func (h *hub) run() {
 
 func (h *hub) nextID() string {
 	h.lastID++
-	return tinystring.Convert(h.lastID).String()
+	return Convert(h.lastID).String()
 }
 
 func (h *hub) addToHistory(msg *SSEMessage, channels []string) {
@@ -176,15 +175,15 @@ func (h *hub) isSubscribed(client *clientConnection, messageChannels []string) b
 // formatSSEMessage formats the SSE message according to spec.
 // Handles newlines by creating multiple data: lines.
 func formatSSEMessage(id, event string, data []byte) string {
-	var b strings.Builder
-	b.WriteString("id: ")
-	b.WriteString(id)
-	b.WriteString("\n")
+	b := Convert()
+	b.Write("id: ")
+	b.Write(id)
+	b.Write("\n")
 
 	if event != "" {
-		b.WriteString("event: ")
-		b.WriteString(event)
-		b.WriteString("\n")
+		b.Write("event: ")
+		b.Write(event)
+		b.Write("\n")
 	}
 
 	// Split data by \n (also handles \r\n if we split by \n and trim \r)
@@ -192,11 +191,11 @@ func formatSSEMessage(id, event string, data []byte) string {
 	for _, line := range lines {
 		// Remove trailing \r if present
 		line = bytes.TrimSuffix(line, []byte("\r"))
-		b.WriteString("data: ")
+		b.Write("data: ")
 		b.Write(line)
-		b.WriteString("\n")
+		b.Write("\n")
 	}
 
-	b.WriteString("\n") // End of message
+	b.Write("\n") // End of message
 	return b.String()
 }

@@ -1,4 +1,4 @@
-package tinysse
+package sse
 
 import (
 	"testing"

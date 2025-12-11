@@ -1,11 +1,11 @@
 //go:build wasm
 
-package tinysse
+package sse
 
 import (
 	"syscall/js"
 
-	"github.com/cdvelop/tinystring"
+	"github.com/tinywasm/fmt"
 )
 
 // SSEClient is the SSE client for WASM.
@@ -92,7 +92,7 @@ func (c *SSEClient) Connect() {
 			// Construct a meaningful error
 			// We can't get much detail from EventSource error event in browser for security reasons often.
 			// But we can report state.
-			c.errorHandler(tinystring.Err("SSE connection error", "readyState", readyState))
+			c.errorHandler(fmt.Err("SSE connection error", "readyState", readyState))
 		}
 
 		// If CLOSED (2), browser gave up (e.g. fatal error). We can try manual reconnect.
@@ -131,7 +131,7 @@ func (c *SSEClient) reconnect() {
 
 	if c.config.MaxReconnectAttempts > 0 && c.reconnectAttempts >= c.config.MaxReconnectAttempts {
 		if c.errorHandler != nil {
-			c.errorHandler(tinystring.Err("max reconnect attempts reached"))
+			c.errorHandler(fmt.Err("max reconnect attempts reached"))
 		}
 		return
 	}

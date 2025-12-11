@@ -1,16 +1,15 @@
 //go:build !wasm
 
-package tinysse
+package sse
 
 import (
 	"context"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 	"time"
 
-	"github.com/cdvelop/tinystring"
+	. "github.com/tinywasm/fmt"
 )
 
 // mockChannelProvider implements ChannelProvider for testing
@@ -79,13 +78,13 @@ func TestServerFlow(t *testing.T) {
 	t.Logf("Received: %s", output)
 
 	// Verify output format
-	if !strings.Contains(output, "event: greeting") {
+	if !Contains(output, "event: greeting") {
 		t.Error("missing event type")
 	}
-	if !strings.Contains(output, "data: hello world") {
+	if !Contains(output, "data: hello world") {
 		t.Error("missing data")
 	}
-	if !strings.Contains(output, "id: ") {
+	if !Contains(output, "id: ") {
 		t.Error("missing id")
 	}
 }
@@ -131,13 +130,13 @@ func TestServerHistoryReplay(t *testing.T) {
 	output := w.Body.String()
 
 	// Should contain msg2 and msg3, but NOT msg1
-	if strings.Contains(output, "data: msg1") {
+	if Contains(output, "data: msg1") {
 		t.Error("should not receive msg1")
 	}
-	if !strings.Contains(output, "data: msg2") {
+	if !Contains(output, "data: msg2") {
 		t.Error("missing msg2")
 	}
-	if !strings.Contains(output, "data: msg3") {
+	if !Contains(output, "data: msg3") {
 		t.Error("missing msg3")
 	}
 }
@@ -155,7 +154,7 @@ func TestDefaultChannelProvider(t *testing.T) {
 	if w.Code != http.StatusInternalServerError {
 		t.Errorf("expected 500, got %d", w.Code)
 	}
-	if !strings.Contains(w.Body.String(), "channel provider not configured") {
+	if !Contains(w.Body.String(), "channel provider not configured") {
 		t.Errorf("expected error message, got %s", w.Body.String())
 	}
 }
@@ -165,7 +164,7 @@ func TestChannelProviderError(t *testing.T) {
 	tSSE := New(cfg)
 
 	provider := &mockChannelProvider{
-		err: tinystring.Err("auth failed"),
+		err: Err("auth failed"),
 	}
 	server := tSSE.Server(&ServerConfig{ChannelProvider: provider})
 

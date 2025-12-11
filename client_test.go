@@ -1,11 +1,10 @@
 //go:build wasm
 
-package tinysse
+package sse
 
 import (
 	"syscall/js"
 	"testing"
-	"time"
 )
 
 // This test requires `wasmbrowsertest` or a similar environment.
@@ -18,26 +17,18 @@ func TestClientConnect(t *testing.T) {
 	// Since we use global `EventSource`, we can mock it in JS global scope!
 
 	// Mock EventSource
+	var esCreated bool
 	js.Global().Set("EventSource", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		return map[string]interface{}{
-			"New": js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-				// Return a mock EventSource instance
-				es := make(map[string]interface{})
-				es["Set"] = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-					// Store handlers
-					name := args[0].String()
-					fn := args[1]
-					js.Global().Set("_mock_"+name, fn)
-					return nil
-				})
-				es["Call"] = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-					return nil
-				})
-				// Mock readyState property
-				es["readyState"] = 0
-				return es
-			}),
+		// Verify URL argument
+		if len(args) > 0 && args[0].String() == "/events" {
+			esCreated = true
 		}
+
+		// Return a valid object so Connect doesn't falter
+		obj := js.Global().Get("Object").New()
+		obj.Set("readyState", 0)
+		obj.Set("close", js.FuncOf(func(this js.Value, args []js.Value) interface{} { return nil }))
+		return obj
 	}))
 
 	cfg := &Config{Log: testLog(t)}
@@ -49,29 +40,24 @@ func TestClientConnect(t *testing.T) {
 	client.Connect()
 
 	// Verify Connect called New
-	// Hard to verify without more elaborate mocking, but if no panic, it worked basic JS call.
+	if !esCreated {
+		t.Fatal("EventSource constructor not called with expected URL")
+	}
 }
 
 func TestClientOnMessage(t *testing.T) {
-	// Setup mock
-	var onMessage js.Value
+	// Setup mock to capture the EventSource instance
+	var esInstance js.Value
 
 	// Mock EventSource to capture onmessage
 	js.Global().Set("EventSource", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		return map[string]interface{}{
-			"New": js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-				es := make(map[string]interface{})
-				es["Set"] = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-					name := args[0].String()
-					if name == "onmessage" {
-						onMessage = args[1]
-					}
-					return nil
-				})
-				es["Call"] = js.FuncOf(func(this js.Value, args []js.Value) interface{} { return nil })
-				return es
-			}),
-		}
+		// Create a real JS object so we can keep a reference to it
+		obj := js.Global().Get("Object").New()
+		obj.Set("readyState", 0)
+		obj.Set("close", js.FuncOf(func(this js.Value, args []js.Value) interface{} { return nil }))
+
+		esInstance = obj
+		return obj
 	}))
 
 	tSSE := New(&Config{})
@@ -84,23 +70,24 @@ func TestClientOnMessage(t *testing.T) {
 
 	client.Connect()
 
+	if esInstance.IsUndefined() {
+		t.Fatal("EventSource instance was not created")
+	}
+
+	onMessage := esInstance.Get("onmessage")
 	if onMessage.IsUndefined() {
 		t.Fatal("onmessage handler not set")
 	}
 
 	// Simulate incoming message
 	// Event object mock
-	event := map[string]interface{}{
-		"data":        "hello world",
-		"lastEventId": "123",
-		"type":        "test-event",
-	}
+	// We need a JS object with 'data', 'lastEventId', 'type' properties
+	event := js.Global().Get("Object").New()
+	event.Set("data", "hello world")
+	event.Set("lastEventId", "123")
+	event.Set("type", "test-event")
 
-	// JS ValueOf map doesn't work directly for properties access via Get() on struct like objects?
-	// We need to make sure `args[0].Get("data")` works.
-	// js.ValueOf(map) returns a JS object where keys are properties.
-
-	onMessage.Invoke(js.ValueOf(event))
+	onMessage.Invoke(event)
 
 	if received == nil {
 		t.Fatal("handler not called")

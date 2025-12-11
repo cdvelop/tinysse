@@ -1,6 +1,6 @@
 //go:build !wasm
 
-package tinysse
+package sse
 
 import "net/http"
 
@@ -20,7 +20,7 @@ type ChannelProvider interface {
 }
 
 // SSEPublisher allows publishing messages to SSE clients.
-// Implemented by tinysse.SSEServer.
+// Implemented by sse.SSEServer.
 type SSEPublisher interface {
 	// Publish sends data to clients subscribed to the specified channels.
 	// Data can contain newlines - tinysse handles them internally.

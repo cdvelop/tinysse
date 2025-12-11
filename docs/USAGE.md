@@ -5,7 +5,7 @@ This guide covers how to install and use `tinysse` for both server-side (Go) and
 ## Installation
 
 ```bash
-go get github.com/cdvelop/tinysse
+go get github.com/tinywasm/sse
 ```
 
 ## Server-Side Implementation
@@ -23,7 +23,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/cdvelop/tinysse"
+	"github.com/tinywasm/sse"
 )
 
 func main() {
@@ -97,7 +97,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/cdvelop/tinysse"
+	"github.com/tinywasm/sse"
 )
 
 func main() {

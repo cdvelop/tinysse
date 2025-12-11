@@ -101,7 +101,7 @@ type ChannelProvider interface {
 If `ServerConfig.ChannelProvider` is nil, tinysse uses a default that rejects all connections:
 
 ```go
-import . "github.com/cdvelop/tinystring"
+import . "github.com/tinywasm/fmt"
 
 type defaultChannelProvider struct{}
 
@@ -121,7 +121,7 @@ func (d *defaultChannelProvider) ResolveChannels(r *http.Request) ([]string, err
 import (
     "bytes"
     "strings"
-    . "github.com/cdvelop/tinystring"
+    . "github.com/tinywasm/fmt"
 )
 
 func formatSSEMessage(id, event string, data []byte) string {
@@ -176,7 +176,7 @@ tinysse generates SSE IDs internally using correlative numbers:
 
 ```go
 // Using tinystring instead of strconv
-import . "github.com/cdvelop/tinystring"
+import . "github.com/tinywasm/fmt"
 
 func (h *hub) nextID() string {
     h.lastID++
